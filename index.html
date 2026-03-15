@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carve — The Wooden Puzzle Game</title>
+    <meta name="description" content="Slide blocks. Match shapes. Carve your way to mastery. A beautifully crafted wooden puzzle game for iOS.">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --wood-dark:    #120b05;
+            --wood-mid:     #2e1a0e;
+            --wood-warm:    #4a2c18;
+            --wood-grain:   #5c3820;
+            --wood-light:   #8b5e3c;
+            --gold:         #c9923a;
+            --gold-light:   #e8b86d;
+            --gold-bright:  #f5d08a;
+            --cream:        #f5ead8;
+            --cream-dim:    #d4bfa0;
+            --text-body:    #e8d9c0;
+            --shadow-deep:  rgba(0,0,0,0.7);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background-color: var(--wood-dark);
+            background-image:
+                repeating-linear-gradient(91deg, transparent, transparent 3px, rgba(255,255,255,0.008) 3px, rgba(255,255,255,0.008) 5px),
+                repeating-linear-gradient(180deg, transparent, transparent 60px, rgba(0,0,0,0.06) 60px, rgba(0,0,0,0.06) 61px);
+            color: var(--text-body);
+            font-family: 'Crimson Text', Georgia, serif;
+            font-size: 18px;
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        /* ─── GRAIN OVERLAY ─── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(ellipse at 15% 40%, rgba(100,55,20,0.18) 0%, transparent 55%),
+                radial-gradient(ellipse at 85% 10%, rgba(60,30,10,0.22) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 90%, rgba(80,40,15,0.15) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ─── HERO ─── */
+        .hero {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 60px 24px 80px;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 120px;
+            background: linear-gradient(to bottom, transparent, var(--wood-dark));
+            pointer-events: none;
+        }
+
+        /* Radial glow behind icon */
+        .hero-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -60%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(ellipse, rgba(201,146,58,0.12) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .app-icon {
+            width: 140px;
+            height: 140px;
+            border-radius: 32px;
+            box-shadow:
+                0 0 0 1px rgba(201,146,58,0.3),
+                0 0 40px rgba(201,146,58,0.25),
+                0 24px 60px rgba(0,0,0,0.7);
+            margin-bottom: 32px;
+            animation: iconFloat 6s ease-in-out infinite;
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .hero-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(52px, 12vw, 96px);
+            font-weight: 900;
+            color: var(--gold-light);
+            letter-spacing: 0.15em;
+            text-shadow:
+                0 0 80px rgba(201,146,58,0.5),
+                0 0 30px rgba(201,146,58,0.3),
+                0 4px 8px rgba(0,0,0,0.8);
+            position: relative;
+            z-index: 2;
+            line-height: 1;
+            margin-bottom: 12px;
+            animation: fadeUp 0.9s ease both;
+        }
+
+        .hero-subtitle {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(12px, 2.5vw, 16px);
+            font-weight: 400;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--cream-dim);
+            margin-bottom: 28px;
+            animation: fadeUp 0.9s 0.15s ease both;
+        }
+
+        .hero-tagline {
+            font-family: 'Crimson Text', serif;
+            font-size: clamp(18px, 3.5vw, 26px);
+            font-style: italic;
+            color: var(--cream);
+            max-width: 520px;
+            line-height: 1.5;
+            margin-bottom: 48px;
+            opacity: 0.9;
+            animation: fadeUp 0.9s 0.3s ease both;
+        }
+
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #c9923a 0%, #e8b86d 50%, #c9923a 100%);
+            background-size: 200% 100%;
+            color: var(--wood-dark);
+            font-family: 'Cinzel', serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-decoration: none;
+            padding: 18px 40px;
+            border-radius: 4px;
+            box-shadow:
+                0 0 30px rgba(201,146,58,0.4),
+                0 8px 24px rgba(0,0,0,0.5),
+                inset 0 1px 0 rgba(255,255,255,0.3);
+            transition: background-position 0.4s, transform 0.2s, box-shadow 0.2s;
+            animation: fadeUp 0.9s 0.45s ease both;
+            position: relative;
+            z-index: 2;
+        }
+
+        .cta-btn:hover {
+            background-position: 100% 0;
+            transform: translateY(-2px);
+            box-shadow: 0 0 50px rgba(201,146,58,0.6), 0 12px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+
+        .cta-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--wood-dark);
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── SECTION SHARED ─── */
+        section {
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-inner {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+
+        .section-label {
+            font-family: 'Cinzel', serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .section-heading {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(22px, 4vw, 34px);
+            font-weight: 700;
+            color: var(--gold-light);
+            letter-spacing: 0.06em;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+        }
+
+        .gold-rule {
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--gold), transparent);
+            margin-bottom: 32px;
+        }
+
+        /* ─── HOW TO PLAY ─── */
+        .how-section {
+            background:
+                repeating-linear-gradient(91deg, transparent, transparent 3px, rgba(255,255,255,0.005) 3px, rgba(255,255,255,0.005) 5px),
+                linear-gradient(180deg, var(--wood-dark) 0%, var(--wood-mid) 50%, var(--wood-dark) 100%);
+        }
+
+        .how-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .how-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(139,94,60,0.25);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.25s, border-color 0.25s;
+        }
+
+        .how-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 2px; height: 100%;
+            background: linear-gradient(180deg, var(--gold), transparent);
+            z-index: 1;
+        }
+
+        .how-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(201,146,58,0.4);
+        }
+
+        .how-card-img {
+            width: 100%;
+            aspect-ratio: 9 / 16;
+            object-fit: cover;
+            object-position: top;
+            display: block;
+            max-height: 260px;
+            object-position: center top;
+        }
+
+        .how-card-body {
+            padding: 22px 24px 26px;
+        }
+
+        .how-num {
+            font-family: 'Cinzel', serif;
+            font-size: 30px;
+            font-weight: 900;
+            color: rgba(201,146,58,0.15);
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .how-card h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--gold-light);
+            margin-bottom: 10px;
+        }
+
+        .how-card p {
+            font-size: 16px;
+            color: var(--cream-dim);
+            line-height: 1.6;
+        }
+
+        /* ─── SCREENSHOTS ─── */
+        .screens-section {
+            overflow: hidden;
+        }
+
+        .screens-section .section-inner {
+            padding-bottom: 0;
+        }
+
+        .screens-track-wrap {
+            position: relative;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 20px 40px 60px;
+            cursor: grab;
+        }
+
+        .screens-track-wrap::-webkit-scrollbar { display: none; }
+        .screens-track-wrap.grabbing { cursor: grabbing; }
+
+        .screens-track {
+            display: flex;
+            gap: 20px;
+            width: max-content;
+        }
+
+        .screen-item {
+            flex-shrink: 0;
+            width: 200px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 1px rgba(201,146,58,0.2),
+                0 20px 50px rgba(0,0,0,0.6);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .screen-item:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 0 0 1px rgba(201,146,58,0.4), 0 30px 60px rgba(0,0,0,0.7);
+        }
+
+        .screen-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* ─── FEATURES ─── */
+        .features-section {
+            background: linear-gradient(180deg, var(--wood-dark) 0%, rgba(46,26,14,0.4) 50%, var(--wood-dark) 100%);
+        }
+
+        .features-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(139,94,60,0.2);
+            border-radius: 4px;
+            padding: 28px;
+            position: relative;
+            transition: background 0.25s, border-color 0.25s;
+        }
+
+        .feature-card:hover {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(201,146,58,0.35);
+        }
+
+        .feature-card.wide {
+            grid-column: span 2;
+        }
+
+        .feature-icon {
+            font-size: 28px;
+            margin-bottom: 14px;
+            display: block;
+        }
+
+        .feature-card h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gold-light);
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            font-size: 16px;
+            color: var(--cream-dim);
+            line-height: 1.65;
+        }
+
+        /* ─── RANKING ─── */
+        .ranking-section {
+            background:
+                repeating-linear-gradient(91deg, transparent, transparent 3px, rgba(255,255,255,0.004) 3px, rgba(255,255,255,0.004) 5px),
+                linear-gradient(180deg, var(--wood-dark), var(--wood-mid) 50%, var(--wood-dark));
+        }
+
+        .ranks-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 32px;
+        }
+
+        .rank-chip {
+            font-family: 'Cinzel', serif;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 8px 18px;
+            border-radius: 2px;
+            border: 1px solid rgba(139,94,60,0.35);
+            color: var(--cream-dim);
+            background: rgba(255,255,255,0.025);
+            transition: all 0.2s;
+        }
+
+        .rank-chip:hover {
+            border-color: var(--gold);
+            color: var(--gold-light);
+        }
+
+        .rank-chip.rare {
+            border-color: rgba(201,146,58,0.5);
+            color: var(--gold-light);
+            background: rgba(201,146,58,0.07);
+        }
+
+        .ranking-desc {
+            max-width: 600px;
+            font-size: 18px;
+            color: var(--cream-dim);
+            margin-bottom: 8px;
+        }
+
+        /* ─── BOTTOM CTA ─── */
+        .cta-section {
+            text-align: center;
+            padding: 100px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, rgba(201,146,58,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .cta-section .section-heading {
+            font-size: clamp(28px, 5vw, 48px);
+            margin-bottom: 16px;
+        }
+
+        .cta-section p {
+            font-size: 20px;
+            font-style: italic;
+            color: var(--cream-dim);
+            max-width: 480px;
+            margin: 0 auto 48px;
+        }
+
+        /* ─── FOOTER ─── */
+        footer {
+            border-top: 1px solid var(--wood-grain);
+            padding: 40px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--wood-light);
+            position: relative;
+            z-index: 1;
+        }
+
+        footer a {
+            color: var(--gold);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(201,146,58,0.3);
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        footer a:hover {
+            color: var(--cream);
+            border-color: var(--cream);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 32px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .ornament {
+            color: var(--gold);
+            opacity: 0.4;
+            letter-spacing: 0.4em;
+            font-size: 14px;
+            margin: 24px 0;
+        }
+
+        /* ─── DIVIDER ─── */
+        .gold-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--wood-grain), transparent);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ─── SCROLL REVEAL ─── */
+        /* Default: fully visible (no-JS fallback) */
+        .reveal {
+            opacity: 1;
+            transform: none;
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        /* JS adds this class to body when ready */
+        .js-reveal-ready .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        .js-reveal-ready .reveal.visible {
+            opacity: 1;
+            transform: none;
+        }
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+        .reveal-delay-4 { transition-delay: 0.4s; }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 680px) {
+            .features-layout { grid-template-columns: 1fr; }
+            .feature-card.wide { grid-column: span 1; }
+            .section-inner { padding: 60px 24px; }
+            .cta-section { padding: 70px 24px; }
+            footer { padding: 32px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════ HERO ═══════════════════════════════════ -->
+<section class="hero">
+    <div class="hero-glow"></div>
+    <img src="CarveAppIconROUNDED.png" alt="Carve app icon" class="app-icon">
+    <h1 class="hero-title">CARVE</h1>
+    <p class="hero-subtitle">The Wooden Puzzle Game</p>
+    <p class="hero-tagline">Play it mindlessly to unwind, or think three moves ahead to master it. Either way, you won't be able to put it down.</p>
+    <a href="https://apps.apple.com/app/id6760225491" class="cta-btn" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        Download on the App Store
+    </a>
+</section>
+
+<div class="gold-divider"></div>
+
+<!-- ═══════════════════════════════════ HOW TO PLAY ═══════════════════════════════════ -->
+<section class="how-section">
+    <div class="section-inner">
+        <span class="section-label reveal">How to Play</span>
+        <h2 class="section-heading reveal reveal-delay-1">Simple to Learn.<br>Endlessly Deep to Master.</h2>
+        <div class="gold-rule reveal reveal-delay-2"></div>
+
+        <div class="how-grid">
+            <div class="how-card reveal reveal-delay-1">
+                <img src="screenshot2.png" alt="Slide blocks to match shapes" class="how-card-img">
+                <div class="how-card-body">
+                    <div class="how-num">01</div>
+                    <h3>Slide to Match</h3>
+                    <p>Drag blocks across the board to match the glowing target shapes. Every swipe costs a move, so plan wisely.</p>
+                </div>
+            </div>
+            <div class="how-card reveal reveal-delay-2">
+                <img src="screenshot3.png" alt="Carve shapes and earn moves back" class="how-card-img">
+                <div class="how-card-body">
+                    <div class="how-num">02</div>
+                    <h3>Carve &amp; Earn</h3>
+                    <p>Complete a shape and it's carved away — and you earn moves back. Chain multiple matches in one slide for a combo bonus.</p>
+                </div>
+            </div>
+            <div class="how-card reveal reveal-delay-3">
+                <img src="screenshot4.png" alt="Rotate the board freely" class="how-card-img">
+                <div class="how-card-body">
+                    <div class="how-num">03</div>
+                    <h3>Rotate Freely</h3>
+                    <p>Spin the entire board to find the perfect angle. Rotations are always free — use them to unlock new possibilities.</p>
+                </div>
+            </div>
+            <div class="how-card reveal reveal-delay-4">
+                <img src="screenshot1.png" alt="Bonus blocks appear randomly" class="how-card-img">
+                <div class="how-card-body">
+                    <div class="how-num">04</div>
+                    <h3>The Bonus Block</h3>
+                    <p>Occasionally, a bonus block appears randomly inside a shape. Carve it and your move meter fills completely — a welcome stroke of luck.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="gold-divider"></div>
+
+<!-- ═══════════════════════════════════ SCREENSHOTS ═══════════════════════════════════ -->
+<section class="screens-section">
+    <div class="section-inner">
+        <span class="section-label reveal">In the Game</span>
+        <h2 class="section-heading reveal reveal-delay-1">Beautifully Crafted</h2>
+        <div class="gold-rule reveal reveal-delay-2"></div>
+    </div>
+    <div class="screens-track-wrap" id="screensTrack">
+        <div class="screens-track">
+            <div class="screen-item"><img src="screenshot1.png" alt="Carve gameplay screenshot 1" loading="lazy"></div>
+            <div class="screen-item"><img src="screenshot2.png" alt="Carve gameplay screenshot 2" loading="lazy"></div>
+            <div class="screen-item"><img src="screenshot3.png" alt="Carve gameplay screenshot 3" loading="lazy"></div>
+            <div class="screen-item"><img src="screenshot4.png" alt="Carve gameplay screenshot 4" loading="lazy"></div>
+            <div class="screen-item"><img src="screenshot5.png" alt="Carve gameplay screenshot 5" loading="lazy"></div>
+            <div class="screen-item"><img src="screenshot6.png" alt="Carve gameplay screenshot 6" loading="lazy"></div>
+        </div>
+    </div>
+</section>
+
+<div class="gold-divider"></div>
+
+<!-- ═══════════════════════════════════ FEATURES ═══════════════════════════════════ -->
+<section class="features-section">
+    <div class="section-inner">
+        <span class="section-label reveal">Features</span>
+        <h2 class="section-heading reveal reveal-delay-1">Everything You Need,<br>Nothing You Don't</h2>
+        <div class="gold-rule reveal reveal-delay-2"></div>
+
+        <div class="features-layout">
+            <div class="feature-card reveal reveal-delay-1">
+                <span class="feature-icon">🎯</span>
+                <h3>Daily Quests</h3>
+                <p>A new challenge awaits every day. Complete it to earn rewards and keep your daily streak alive.</p>
+            </div>
+            <div class="feature-card reveal reveal-delay-2">
+                <span class="feature-icon">📦</span>
+                <h3>Loot Boxes</h3>
+                <p>Maintain your streak and unlock treasure chests packed with bonus blocks, resets, and power-ups.</p>
+            </div>
+            <div class="feature-card reveal reveal-delay-3">
+                <span class="feature-icon">📈</span>
+                <h3>Natural Escalation</h3>
+                <p>Early play is relaxed and approachable. The longer a game goes, the more complex the shapes become — no artificial difficulty walls.</p>
+            </div>
+            <div class="feature-card reveal reveal-delay-4">
+                <span class="feature-icon">🏆</span>
+                <h3>High Scores &amp; Combos</h3>
+                <p>Chase your personal best. Earn badges for lifetime achievements, high scores, and combo milestones.</p>
+            </div>
+            <div class="feature-card wide reveal">
+                <span class="feature-icon">🚫</span>
+                <h3>Remove Ads — Forever</h3>
+                <p>Carve is free to play with optional ads. One single purchase removes all ads permanently. No subscriptions, no seasons, no paywalls. Just the game.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="gold-divider"></div>
+
+<!-- ═══════════════════════════════════ RANKING ═══════════════════════════════════ -->
+<section class="ranking-section">
+    <div class="section-inner">
+        <span class="section-label reveal">Progression</span>
+        <h2 class="section-heading reveal reveal-delay-1">Grow Your Craft</h2>
+        <div class="gold-rule reveal reveal-delay-2"></div>
+        <p class="ranking-desc reveal reveal-delay-3">Progress through a ranking system built entirely around wood — from humble beginnings to rare and exotic hardwoods that few players ever reach. Each rank reflects your true mastery of the board.</p>
+        <p class="ranking-desc reveal reveal-delay-4" style="margin-top: 16px; font-style: italic; color: var(--wood-light);">The ranks are yours to discover. Every new title earned is a milestone — and a glimpse of how far there still is to go.</p>
+    </div>
+</section>
+
+<div class="gold-divider"></div>
+
+<!-- ═══════════════════════════════════ BOTTOM CTA ═══════════════════════════════════ -->
+<section class="cta-section">
+    <span class="section-label reveal" style="display:block; text-align:center;">Free to Download</span>
+    <h2 class="section-heading reveal reveal-delay-1" style="text-align:center;">Ready to Carve?</h2>
+    <p class="reveal reveal-delay-2">Just you, the board, and the next move.</p>
+    <a href="https://apps.apple.com/app/id6760225491" class="cta-btn reveal reveal-delay-3" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;fill:#120b05"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        Download on the App Store
+    </a>
+</section>
+
+<!-- ═══════════════════════════════════ FOOTER ═══════════════════════════════════ -->
+<footer>
+    <div class="footer-links">
+        <a href="https://apps.apple.com/app/id6760225491" target="_blank" rel="noopener">App Store</a>
+        <a href="https://cjasonmaier.github.io/privacy_policy/" target="_blank">Privacy Policy</a>
+        <a href="https://cjasonmaier.github.io/privacy_policy/support.html" target="_blank">Support</a>
+    </div>
+    <div class="ornament">◆ &nbsp; ◆ &nbsp; ◆</div>
+    <p>&copy; 2026 C. Jason Maier &mdash; Carve: The Wooden Puzzle Game</p>
+</footer>
+
+<script>
+    // ─── Scroll reveal (progressive enhancement) ───
+    // Only hide elements if IntersectionObserver is supported
+    if ('IntersectionObserver' in window) {
+        document.body.classList.add('js-reveal-ready');
+        const revealEls = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    e.target.classList.add('visible');
+                    observer.unobserve(e.target);
+                }
+            });
+        }, { threshold: 0.08 });
+        revealEls.forEach(el => observer.observe(el));
+    }
+
+    // ─── Drag-to-scroll screenshots ───
+    const track = document.getElementById('screensTrack');
+    let isDown = false, startX, scrollLeft;
+    track.addEventListener('mousedown', e => {
+        isDown = true;
+        track.classList.add('grabbing');
+        startX = e.pageX - track.offsetLeft;
+        scrollLeft = track.scrollLeft;
+    });
+    track.addEventListener('mouseleave', () => { isDown = false; track.classList.remove('grabbing'); });
+    track.addEventListener('mouseup', () => { isDown = false; track.classList.remove('grabbing'); });
+    track.addEventListener('mousemove', e => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - track.offsetLeft;
+        track.scrollLeft = scrollLeft - (x - startX) * 1.5;
+    });
+</script>
+</body>
+</html>
