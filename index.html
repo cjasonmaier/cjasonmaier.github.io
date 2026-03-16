@@ -542,16 +542,29 @@
         .reveal-delay-3 { transition-delay: 0.3s; }
         .reveal-delay-4 { transition-delay: 0.4s; }
 
+        .ranking-layout {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 60px;
+            align-items: center;
+            margin-top: 32px;
+        }
+
+        .ranking-text .ranking-desc {
+            margin-bottom: 0;
+        }
+
         /* ─── BADGE PROGRESSION ─── */
         .badge-progression {
-            margin-top: 48px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .badge-row {
             display: flex;
             align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
+            gap: 16px;
         }
 
         .badge-item {
@@ -569,6 +582,33 @@
 
         .badge-locked {
             opacity: 0.75;
+            position: relative;
+        }
+
+        .badge-locked-wrap {
+            position: relative;
+            width: 110px;
+            height: 110px;
+        }
+
+        .badge-locked-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            opacity: 0.75;
+        }
+
+        .badge-locked-wrap .badge-q {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-size: 42px;
+            font-weight: 900;
+            color: var(--cream);
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
         }
 
         .badge-label {
@@ -581,7 +621,7 @@
         }
 
         .locked-label {
-            color: var(--wood-light);
+            color: var(--cream-dim);
         }
 
         .badge-arrow {
@@ -597,6 +637,16 @@
             opacity: 0.6;
             letter-spacing: 0.1em;
             margin-bottom: 22px;
+        }
+
+        @media (max-width: 780px) {
+            .ranking-layout {
+                grid-template-columns: 1fr;
+                gap: 36px;
+            }
+            .badge-progression {
+                align-items: flex-start;
+            }
         }
 
         /* ─── RESPONSIVE ─── */
@@ -738,22 +788,29 @@
         <span class="section-label reveal">Progression</span>
         <h2 class="section-heading reveal reveal-delay-1">Grow Your Craft</h2>
         <div class="gold-rule reveal reveal-delay-2"></div>
-        <p class="ranking-desc reveal reveal-delay-3">Progress through a ranking system built entirely around wood — from humble beginnings to rare and exotic hardwoods that few players ever reach. Each rank reflects your true mastery of the board.</p>
-        <p class="ranking-desc reveal reveal-delay-4" style="margin-top: 16px; font-style: italic; color: var(--wood-light);">The ranks are yours to discover. Every new title earned is a milestone — and a glimpse of how far there still is to go.</p>
+        <div class="ranking-layout">
+            <div class="ranking-text">
+                <p class="ranking-desc reveal reveal-delay-3">Progress through a ranking system built entirely around wood — from humble beginnings to rare and exotic hardwoods that few players ever reach. Each rank reflects your true mastery of the board.</p>
+                <p class="ranking-desc reveal reveal-delay-4" style="margin-top: 16px; font-style: italic; color: var(--wood-light);">The ranks are yours to discover. Every new title earned is a milestone — and a glimpse of how far there still is to go.</p>
+            </div>
 
-        <div class="badge-progression reveal" style="margin-top: 48px;">
-            <div class="badge-row">
-                <div class="badge-item">
-                    <img src="balsaicon.png" alt="Balsa rank badge" class="badge-img">
-                    <span class="badge-label">Balsa</span>
+            <div class="badge-progression reveal">
+                <div class="badge-row">
+                    <div class="badge-item">
+                        <img src="balsaicon.png" alt="Balsa rank badge" class="badge-img">
+                        <span class="badge-label">Balsa</span>
+                    </div>
+                    <div class="badge-arrow">→</div>
+                    <div class="badge-item">
+                        <div class="badge-locked-wrap">
+                            <img src="lockedpoplaricon.png" alt="Locked rank">
+                            <span class="badge-q">?</span>
+                        </div>
+                        <span class="badge-label locked-label">???</span>
+                    </div>
+                    <div class="badge-arrow">→</div>
+                    <div class="badge-dots">…</div>
                 </div>
-                <div class="badge-arrow">→</div>
-                <div class="badge-item">
-                    <img src="lockedpoplaricon.png" alt="Locked rank" class="badge-img badge-locked">
-                    <span class="badge-label locked-label">?</span>
-                </div>
-                <div class="badge-arrow">→</div>
-                <div class="badge-dots">…</div>
             </div>
         </div>
     </div>
