@@ -1,864 +1,596 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carve — The Wooden Puzzle Game</title>
-    <meta name="description" content="Slide blocks. Match shapes. Carve your way to mastery. A beautifully crafted wooden puzzle game for iOS.">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --wood-dark:    #120b05;
-            --wood-mid:     #2e1a0e;
-            --wood-warm:    #4a2c18;
-            --wood-grain:   #5c3820;
-            --wood-light:   #8b5e3c;
-            --gold:         #c9923a;
-            --gold-light:   #e8b86d;
-            --gold-bright:  #f5d08a;
-            --cream:        #f5ead8;
-            --cream-dim:    #d4bfa0;
-            --text-body:    #e8d9c0;
-            --shadow-deep:  rgba(0,0,0,0.7);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        html { scroll-behavior: smooth; }
-
-        body {
-            background-color: var(--wood-dark);
-            background-image:
-                repeating-linear-gradient(91deg, transparent, transparent 3px, rgba(255,255,255,0.008) 3px, rgba(255,255,255,0.008) 5px),
-                repeating-linear-gradient(180deg, transparent, transparent 60px, rgba(0,0,0,0.06) 60px, rgba(0,0,0,0.06) 61px);
-            color: var(--text-body);
-            font-family: 'Crimson Text', Georgia, serif;
-            font-size: 18px;
-            line-height: 1.8;
-            overflow-x: hidden;
-        }
-
-        /* ─── GRAIN OVERLAY ─── */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image:
-                radial-gradient(ellipse at 15% 40%, rgba(100,55,20,0.18) 0%, transparent 55%),
-                radial-gradient(ellipse at 85% 10%, rgba(60,30,10,0.22) 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 90%, rgba(80,40,15,0.15) 0%, transparent 60%);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* ─── HERO ─── */
-        .hero {
-            position: relative;
-            z-index: 1;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 60px 24px 80px;
-            overflow: hidden;
-        }
-
-        .hero::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            height: 120px;
-            background: linear-gradient(to bottom, transparent, var(--wood-dark));
-            pointer-events: none;
-        }
-
-        /* Radial glow behind icon */
-        .hero-glow {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -60%);
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(ellipse, rgba(201,146,58,0.12) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .app-icon {
-            width: 140px;
-            height: 140px;
-            border-radius: 32px;
-            box-shadow:
-                0 0 0 1px rgba(201,146,58,0.3),
-                0 0 40px rgba(201,146,58,0.25),
-                0 24px 60px rgba(0,0,0,0.7);
-            margin-bottom: 32px;
-            animation: iconFloat 6s ease-in-out infinite;
-            position: relative;
-            z-index: 2;
-        }
-
-        @keyframes iconFloat {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .hero-logo {
-            width: min(360px, 85vw);
-            height: auto;
-            margin-bottom: 16px;
-            position: relative;
-            z-index: 2;
-            filter: drop-shadow(0 0 40px rgba(201,146,58,0.35)) drop-shadow(0 8px 24px rgba(0,0,0,0.7));
-            animation: fadeUp 0.9s ease both;
-        }
-
-        .hero-subtitle {
-            font-family: 'Cinzel', serif;
-            font-size: clamp(12px, 2.5vw, 16px);
-            font-weight: 400;
-            letter-spacing: 0.3em;
-            text-transform: uppercase;
-            color: var(--cream-dim);
-            margin-bottom: 28px;
-            animation: fadeUp 0.9s 0.15s ease both;
-        }
-
-        .hero-tagline {
-            font-family: 'Crimson Text', serif;
-            font-size: clamp(18px, 3.5vw, 26px);
-            font-style: italic;
-            color: var(--cream);
-            max-width: 520px;
-            line-height: 1.5;
-            margin-bottom: 48px;
-            opacity: 0.9;
-            animation: fadeUp 0.9s 0.3s ease both;
-        }
-
-        .appstore-badge {
-            display: inline-block;
-            animation: fadeUp 0.9s 0.45s ease both;
-            position: relative;
-            z-index: 2;
-            transition: transform 0.2s, filter 0.2s;
-        }
-
-        .appstore-badge:hover {
-            transform: translateY(-2px);
-            filter: brightness(1.1);
-        }
-
-        .appstore-badge img {
-            height: 54px;
-            width: auto;
-            display: block;
-        }
-
-        /* Bottom CTA badge — no fadeUp animation */
-        .appstore-badge.no-anim {
-            animation: none;
-        }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(24px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ─── SECTION SHARED ─── */
-        section {
-            position: relative;
-            z-index: 1;
-        }
-
-        .section-inner {
-            max-width: 1080px;
-            margin: 0 auto;
-            padding: 80px 40px;
-        }
-
-        .section-label {
-            font-family: 'Cinzel', serif;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.35em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 16px;
-            display: block;
-        }
-
-        .section-heading {
-            font-family: 'Cinzel', serif;
-            font-size: clamp(22px, 4vw, 34px);
-            font-weight: 700;
-            color: var(--gold-light);
-            letter-spacing: 0.06em;
-            margin-bottom: 20px;
-            text-shadow: 0 2px 12px rgba(0,0,0,0.5);
-        }
-
-        .gold-rule {
-            width: 60px;
-            height: 2px;
-            background: linear-gradient(90deg, var(--gold), transparent);
-            margin-bottom: 32px;
-        }
-
-        /* ─── HOW TO PLAY ─── */
-        .how-section {
-            background:
-                repeating-linear-gradient(91deg, transparent, transparent 3px, rgba(255,255,255,0.005) 3px, rgba(255,255,255,0.005) 5px),
-                linear-gradient(180deg, var(--wood-dark) 0%, var(--wood-mid) 50%, var(--wood-dark) 100%);
-        }
-
-        .how-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 24px;
-            margin-top: 40px;
-        }
-
-        .how-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(139,94,60,0.25);
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-            transition: transform 0.25s, border-color 0.25s;
-        }
-
-        .how-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 2px; height: 100%;
-            background: linear-gradient(180deg, var(--gold), transparent);
-            z-index: 1;
-        }
-
-        .how-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(201,146,58,0.4);
-        }
-
-        .how-card-img {
-            width: 100%;
-            aspect-ratio: 9 / 16;
-            object-fit: cover;
-            object-position: top;
-            display: block;
-            max-height: 260px;
-            object-position: center top;
-        }
-
-        .how-card-body {
-            padding: 22px 24px 26px;
-        }
-
-        .how-num {
-            font-family: 'Cinzel', serif;
-            font-size: 30px;
-            font-weight: 900;
-            color: rgba(201,146,58,0.15);
-            line-height: 1;
-            margin-bottom: 10px;
-        }
-
-        .how-card h3 {
-            font-family: 'Cinzel', serif;
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            color: var(--gold-light);
-            margin-bottom: 10px;
-        }
-
-        .how-card p {
-            font-size: 16px;
-            color: var(--cream-dim);
-            line-height: 1.6;
-        }
-
-        /* ─── SCREENSHOTS ─── */
-        .screens-section {
-            overflow: hidden;
-        }
-
-        .screens-section .section-inner {
-            padding-bottom: 0;
-        }
-
-        .screens-track-wrap {
-            position: relative;
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            padding: 20px 40px 60px;
-            cursor: grab;
-        }
-
-        .screens-track-wrap::-webkit-scrollbar { display: none; }
-        .screens-track-wrap.grabbing { cursor: grabbing; }
-
-        .screens-track {
-            display: flex;
-            gap: 20px;
-            width: max-content;
-        }
-
-        .screen-item {
-            flex-shrink: 0;
-            width: 200px;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow:
-                0 0 0 1px rgba(201,146,58,0.2),
-                0 20px 50px rgba(0,0,0,0.6);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .screen-item:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 0 0 1px rgba(201,146,58,0.4), 0 30px 60px rgba(0,0,0,0.7);
-        }
-
-        .screen-item img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        /* ─── FEATURES ─── */
-        .features-section {
-            background: linear-gradient(180deg, var(--wood-dark) 0%, rgba(46,26,14,0.4) 50%, var(--wood-dark) 100%);
-        }
-
-        .features-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-top: 40px;
-        }
-
-        .feature-card {
-            background: rgba(255,255,255,0.025);
-            border: 1px solid rgba(139,94,60,0.2);
-            border-radius: 4px;
-            padding: 28px;
-            position: relative;
-            transition: background 0.25s, border-color 0.25s;
-        }
-
-        .feature-card:hover {
-            background: rgba(255,255,255,0.04);
-            border-color: rgba(201,146,58,0.35);
-        }
-
-        .feature-card.wide {
-            grid-column: span 2;
-        }
-
-        .feature-icon {
-            font-size: 28px;
-            margin-bottom: 14px;
-            display: block;
-        }
-
-        .feature-card h3 {
-            font-family: 'Cinzel', serif;
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--gold-light);
-            margin-bottom: 10px;
-        }
-
-        .feature-card p {
-            font-size: 16px;
-            color: var(--cream-dim);
-            line-height: 1.65;
-        }
-
-        /* ─── RANKING ─── */
-        .ranking-section {
-            background:
-                repeating-linear-gradient(91deg, transparent, transparent 3px, rgba(255,255,255,0.004) 3px, rgba(255,255,255,0.004) 5px),
-                linear-gradient(180deg, var(--wood-dark), var(--wood-mid) 50%, var(--wood-dark));
-        }
-
-        .ranks-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 32px;
-        }
-
-        .rank-chip {
-            font-family: 'Cinzel', serif;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            padding: 8px 18px;
-            border-radius: 2px;
-            border: 1px solid rgba(139,94,60,0.35);
-            color: var(--cream-dim);
-            background: rgba(255,255,255,0.025);
-            transition: all 0.2s;
-        }
-
-        .rank-chip:hover {
-            border-color: var(--gold);
-            color: var(--gold-light);
-        }
-
-        .rank-chip.rare {
-            border-color: rgba(201,146,58,0.5);
-            color: var(--gold-light);
-            background: rgba(201,146,58,0.07);
-        }
-
-        .ranking-desc {
-            max-width: 600px;
-            font-size: 18px;
-            color: var(--cream-dim);
-            margin-bottom: 8px;
-        }
-
-        /* ─── BOTTOM CTA ─── */
-        .cta-section {
-            text-align: center;
-            padding: 100px 40px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cta-section::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(ellipse at center, rgba(201,146,58,0.08) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .cta-section .section-heading {
-            font-size: clamp(28px, 5vw, 48px);
-            margin-bottom: 16px;
-        }
-
-        .cta-section p {
-            font-size: 20px;
-            font-style: italic;
-            color: var(--cream-dim);
-            max-width: 480px;
-            margin: 0 auto 48px;
-        }
-
-        /* ─── FOOTER ─── */
-        footer {
-            border-top: 1px solid var(--wood-grain);
-            padding: 40px;
-            text-align: center;
-            font-size: 14px;
-            color: var(--wood-light);
-            position: relative;
-            z-index: 1;
-        }
-
-        footer a {
-            color: var(--gold);
-            text-decoration: none;
-            border-bottom: 1px solid rgba(201,146,58,0.3);
-            transition: color 0.2s, border-color 0.2s;
-        }
-
-        footer a:hover {
-            color: var(--cream);
-            border-color: var(--cream);
-        }
-
-        .footer-links {
-            display: flex;
-            gap: 32px;
-            justify-content: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .ornament {
-            color: var(--gold);
-            opacity: 0.4;
-            letter-spacing: 0.4em;
-            font-size: 14px;
-            margin: 24px 0;
-        }
-
-        /* ─── DIVIDER ─── */
-        .gold-divider {
-            width: 100%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--wood-grain), transparent);
-            position: relative;
-            z-index: 1;
-        }
-
-        /* ─── SCROLL REVEAL ─── */
-        /* Default: fully visible (no-JS fallback) */
-        .reveal {
-            opacity: 1;
-            transform: none;
-            transition: opacity 0.7s ease, transform 0.7s ease;
-        }
-        /* JS adds this class to body when ready */
-        .js-reveal-ready .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        .js-reveal-ready .reveal.visible {
-            opacity: 1;
-            transform: none;
-        }
-        .reveal-delay-1 { transition-delay: 0.1s; }
-        .reveal-delay-2 { transition-delay: 0.2s; }
-        .reveal-delay-3 { transition-delay: 0.3s; }
-        .reveal-delay-4 { transition-delay: 0.4s; }
-
-        .ranking-layout {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 60px;
-            align-items: center;
-            margin-top: 32px;
-        }
-
-        .ranking-text .ranking-desc {
-            margin-bottom: 0;
-        }
-
-        /* ─── BADGE PROGRESSION ─── */
-        .badge-progression {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .badge-row {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .badge-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .badge-img {
-            width: 110px;
-            height: 110px;
-            object-fit: contain;
-        }
-
-        .badge-locked {
-            opacity: 0.75;
-            position: relative;
-        }
-
-        .badge-locked-wrap {
-            position: relative;
-            width: 110px;
-            height: 110px;
-        }
-
-        .badge-locked-wrap img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            opacity: 0.75;
-        }
-
-        .badge-locked-wrap .badge-q {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Cinzel', serif;
-            font-size: 42px;
-            font-weight: 900;
-            color: var(--cream);
-            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
-        }
-
-        .badge-label {
-            font-family: 'Cinzel', serif;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            color: var(--gold-light);
-        }
-
-        .locked-label {
-            color: var(--cream-dim);
-        }
-
-        .badge-arrow {
-            font-size: 24px;
-            color: var(--gold);
-            opacity: 0.5;
-            margin-bottom: 22px;
-        }
-
-        .badge-dots {
-            font-size: 28px;
-            color: var(--wood-light);
-            opacity: 0.6;
-            letter-spacing: 0.1em;
-            margin-bottom: 22px;
-        }
-
-        @media (max-width: 780px) {
-            .ranking-layout {
-                grid-template-columns: 1fr;
-                gap: 36px;
-            }
-            .badge-progression {
-                align-items: flex-start;
-            }
-        }
-
-        /* ─── RESPONSIVE ─── */
-        @media (max-width: 680px) {
-            .features-layout { grid-template-columns: 1fr; }
-            .feature-card.wide { grid-column: span 1; }
-            .section-inner { padding: 60px 24px; }
-            .cta-section { padding: 70px 24px; }
-            footer { padding: 32px 24px; }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>C. Jason Maier — iOS Games</title>
+  <meta name="description" content="Two iOS games by C. Jason Maier: Carve, the wooden puzzle game, and Pipfall, the cascading puzzle.">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Nunito:wght@700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── RESET ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    /* ─── PAGE ─── */
+    body {
+      background: #0e0e10;
+      color: #f0ede8;
+      font-family: 'Nunito', sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Subtle grain overlay over the whole page */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      opacity: 0.6;
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      position: relative; z-index: 1;
+      text-align: center;
+      padding: 80px 24px 60px;
+    }
+
+    .byline {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .page-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(22px, 5vw, 36px);
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      color: #c8c0b4;
+      margin-bottom: 10px;
+    }
+
+    .divider-line {
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #666, transparent);
+      margin: 20px auto 0;
+    }
+
+    /* ─── MAIN LAYOUT ─── */
+    main {
+      position: relative; z-index: 1;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      min-height: 70vh;
+      padding: 0 0 80px;
+    }
+
+    /* ─── CENTER DIVIDER ─── */
+    .center-divider {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 24px;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .center-line {
+      width: 1px;
+      flex: 1;
+      background: linear-gradient(to bottom,
+        transparent 0%,
+        #3a3530 15%,
+        #3a3a3a 50%,
+        #1e2a38 85%,
+        transparent 100%);
+      min-height: 60px;
+    }
+
+    .center-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #555;
+      flex-shrink: 0;
+    }
+
+    .and-text {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #555;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+    }
+
+    /* ─── GAME CARDS ─── */
+    .game-card {
+      flex: 1;
+      max-width: 540px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 48px;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+      cursor: pointer;
+    }
+
+    .game-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+
+    .game-card:hover {
+      transform: translateY(-6px);
+    }
+
+    .game-card:hover::before {
+      opacity: 1;
+    }
+
+    /* ── CARVE card ── */
+    .card-carve {
+      background:
+        radial-gradient(ellipse at 50% 30%, rgba(74, 44, 24, 0.4) 0%, transparent 65%),
+        repeating-linear-gradient(88deg, transparent, transparent 4px, rgba(255,255,255,0.006) 4px, rgba(255,255,255,0.006) 6px);
+    }
+
+    .card-carve::before {
+      background: radial-gradient(ellipse at 50% 40%, rgba(201,146,58,0.07) 0%, transparent 65%);
+    }
+
+    .carve-ornament {
+      position: absolute;
+      top: 28px; left: 0; right: 0;
+      text-align: center;
+      font-size: 10px;
+      letter-spacing: 0.6em;
+      color: rgba(201,146,58,0.25);
+      pointer-events: none;
+    }
+
+    .carve-ornament-bottom {
+      position: absolute;
+      bottom: 28px; left: 0; right: 0;
+      text-align: center;
+      font-size: 10px;
+      letter-spacing: 0.6em;
+      color: rgba(201,146,58,0.2);
+      pointer-events: none;
+    }
+
+    /* corner flourishes */
+    .card-carve::after {
+      content: '';
+      position: absolute;
+      top: 16px; left: 16px; right: 16px; bottom: 16px;
+      border: 1px solid rgba(201,146,58,0.08);
+      border-radius: 2px;
+      pointer-events: none;
+      transition: border-color 0.4s;
+    }
+
+    .card-carve:hover::after {
+      border-color: rgba(201,146,58,0.18);
+    }
+
+    /* ── PIPFALL card ── */
+    .card-pipfall {
+      background:
+        radial-gradient(ellipse at 50% 30%, rgba(30, 50, 80, 0.35) 0%, transparent 65%),
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: auto, 40px 40px, 40px 40px;
+    }
+
+    .card-pipfall::before {
+      background: radial-gradient(ellipse at 50% 40%, rgba(51,153,219,0.08) 0%, transparent 65%);
+    }
+
+    /* ─── APP ICON PLACEHOLDER ─── */
+    .icon-wrap {
+      margin-bottom: 32px;
+      position: relative;
+    }
+
+    /* Carve icon — warm wood square */
+    .icon-carve {
+      width: 100px; height: 100px;
+      border-radius: 22px;
+      background: linear-gradient(145deg, #5c3820 0%, #2e1a0e 60%, #1a0f08 100%);
+      box-shadow:
+        0 0 0 1px rgba(201,146,58,0.35),
+        0 0 30px rgba(201,146,58,0.2),
+        0 16px 48px rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center;
+      animation: carveFloat 6s ease-in-out infinite;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .icon-carve::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        repeating-linear-gradient(5deg, transparent, transparent 8px, rgba(255,255,255,0.015) 8px, rgba(255,255,255,0.015) 9px);
+    }
+
+    .icon-carve svg {
+      position: relative; z-index: 1;
+    }
+
+    @keyframes carveFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    /* Pipfall icon — dark tech square */
+    .icon-pipfall {
+      width: 100px; height: 100px;
+      border-radius: 22px;
+      background: linear-gradient(145deg, #1a2233 0%, #111620 70%, #0c0f15 100%);
+      box-shadow:
+        0 0 0 1px rgba(51,153,219,0.3),
+        0 0 30px rgba(51,153,219,0.15),
+        0 16px 48px rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center;
+      animation: pipFloat 6s 1s ease-in-out infinite;
+    }
+
+    @keyframes pipFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    /* mini pip grid inside pipfall icon */
+    .pip-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 10px);
+      grid-template-rows: repeat(4, 10px);
+      gap: 4px;
+      padding: 14px;
+    }
+
+    .pg-cell {
+      width: 10px; height: 10px;
+      border-radius: 2px;
+      background: rgba(51,153,219,0.12);
+    }
+
+    .pg-cell.c1 { background: rgba(51,153,219,0.5); }
+    .pg-cell.c2 { background: rgba(51,153,219,0.75); }
+    .pg-cell.c3 { background: rgba(51,153,219,0.95); }
+    .pg-cell.burst {
+      background: rgba(248,200,90,0.9);
+      box-shadow: 0 0 6px rgba(248,200,90,0.6);
+    }
+
+    /* ─── CARD TEXT ─── */
+    .game-name {
+      margin-bottom: 12px;
+      text-align: center;
+      position: relative; z-index: 1;
+    }
+
+    .game-name-carve {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #e8b86d;
+      text-shadow: 0 0 40px rgba(201,146,58,0.4);
+    }
+
+    .game-name-pipfall {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: #3399db;
+      text-shadow: 0 0 40px rgba(51,153,219,0.4);
+    }
+
+    .game-sub {
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative; z-index: 1;
+    }
+
+    .game-sub-carve {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #8a6a45;
+    }
+
+    .game-sub-pipfall {
+      font-family: 'Nunito', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(51,153,219,0.55);
+    }
+
+    .game-desc {
+      text-align: center;
+      max-width: 280px;
+      line-height: 1.65;
+      margin-bottom: 36px;
+      position: relative; z-index: 1;
+    }
+
+    .game-desc-carve {
+      font-family: 'Crimson Text', serif;
+      font-size: 17px;
+      font-style: italic;
+      color: rgba(232,217,192,0.7);
+    }
+
+    .game-desc-pipfall {
+      font-family: 'Nunito', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(140, 165, 200, 0.75);
+      letter-spacing: 0.01em;
+    }
+
+    /* ─── CTA BUTTONS ─── */
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+      position: relative; z-index: 1;
+    }
+
+    .cta-btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.12);
+    }
+
+    .cta-btn-carve {
+      background: linear-gradient(135deg, #c9923a, #a87228);
+      color: #1a0e06;
+      box-shadow: 0 4px 20px rgba(201,146,58,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+
+    .cta-btn-pipfall {
+      background: rgba(51,153,219,0.15);
+      color: #3399db;
+      border: 1px solid rgba(51,153,219,0.35);
+      box-shadow: 0 4px 20px rgba(51,153,219,0.1);
+    }
+
+    .cta-btn-pipfall:hover {
+      background: rgba(51,153,219,0.22);
+    }
+
+    /* Arrow */
+    .btn-arrow {
+      font-size: 16px;
+      transition: transform 0.2s;
+    }
+
+    .cta-btn:hover .btn-arrow {
+      transform: translateX(3px);
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      position: relative; z-index: 1;
+      text-align: center;
+      padding: 32px 24px 48px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    footer p {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #3a3a3a;
+    }
+
+    /* ─── LOAD ANIMATION ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    header { animation: fadeUp 0.7s ease both; }
+
+    .card-carve .icon-wrap    { animation: fadeUp 0.6s 0.25s ease both; }
+    .card-carve .game-name    { animation: fadeUp 0.6s 0.35s ease both; }
+    .card-carve .game-sub     { animation: fadeUp 0.6s 0.4s ease both; }
+    .card-carve .game-desc    { animation: fadeUp 0.6s 0.48s ease both; }
+    .card-carve .cta-btn      { animation: fadeUp 0.6s 0.56s ease both; }
+
+    .card-pipfall .icon-wrap  { animation: fadeUp 0.6s 0.35s ease both; }
+    .card-pipfall .game-name  { animation: fadeUp 0.6s 0.45s ease both; }
+    .card-pipfall .game-sub   { animation: fadeUp 0.6s 0.50s ease both; }
+    .card-pipfall .game-desc  { animation: fadeUp 0.6s 0.58s ease both; }
+    .card-pipfall .cta-btn    { animation: fadeUp 0.6s 0.66s ease both; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 680px) {
+      main {
+        flex-direction: column;
+        align-items: center;
+        padding-bottom: 40px;
+      }
+
+      .game-card {
+        max-width: 100%;
+        width: 100%;
+        padding: 56px 32px;
+      }
+
+      .center-divider {
+        flex-direction: row;
+        padding: 12px 0;
+        gap: 12px;
+        width: 100%;
+        justify-content: center;
+      }
+
+      .center-line {
+        width: 60px; height: 1px; flex: 0;
+        background: linear-gradient(to right, transparent, #444, transparent);
+        min-height: 0;
+      }
+
+      .and-text {
+        writing-mode: horizontal-tb;
+        font-size: 10px;
+      }
+
+      .card-carve { border-bottom: 1px solid rgba(201,146,58,0.08); }
+      .card-pipfall { border-top: 1px solid rgba(51,153,219,0.08); }
+    }
+  </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════ HERO ═══════════════════════════════════ -->
-<section class="hero">
-    <div class="hero-glow"></div>
-    <img src="CarveAppIconROUNDED.png" alt="Carve app icon" class="app-icon">
-    <img src="CarveLogo.png" alt="CARVE" class="hero-logo">
-    <p class="hero-subtitle">The Wooden Puzzle Game</p>
-    <p class="hero-tagline">Play it mindlessly to unwind, or think three moves ahead to master it. Either way, you won't be able to put it down.</p>
-    <a href="https://apps.apple.com/app/id6760225491" class="appstore-badge" target="_blank" rel="noopener">
-        <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store">
+  <!-- ─── HEADER ─── -->
+  <header>
+    <span class="byline">C. Jason Maier &mdash; iOS Games</span>
+    <h1 class="page-title">Two Games. Two Worlds.</h1>
+    <div class="divider-line"></div>
+  </header>
+
+  <!-- ─── MAIN ─── -->
+  <main>
+
+    <!-- ══ CARVE ══ -->
+    <a class="game-card card-carve" href="https://cjasonmaier.github.io/carve" target="_blank" rel="noopener">
+      <span class="carve-ornament">◆ &nbsp; ◆ &nbsp; ◆</span>
+
+      <div class="icon-wrap">
+        <div class="icon-carve">
+          <!-- Simple woodgrain chisel mark SVG -->
+          <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- outer shape -->
+            <rect x="8" y="8" width="36" height="36" rx="3" fill="none" stroke="#c9923a" stroke-width="1.5" opacity="0.5"/>
+            <!-- inner puzzle piece suggestion -->
+            <rect x="16" y="16" width="8" height="8" rx="1.5" fill="#c9923a" opacity="0.7"/>
+            <rect x="28" y="16" width="8" height="8" rx="1.5" fill="#c9923a" opacity="0.4"/>
+            <rect x="16" y="28" width="8" height="8" rx="1.5" fill="#c9923a" opacity="0.35"/>
+            <rect x="28" y="28" width="8" height="8" rx="1.5" fill="#c9923a" opacity="0.6"/>
+            <!-- center crosshair -->
+            <line x1="26" y1="16" x2="26" y2="36" stroke="#c9923a" stroke-width="0.75" opacity="0.25"/>
+            <line x1="16" y1="26" x2="36" y2="26" stroke="#c9923a" stroke-width="0.75" opacity="0.25"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="game-name">
+        <span class="game-name-carve">Carve</span>
+      </div>
+      <div class="game-sub">
+        <span class="game-sub-carve">The Wooden Puzzle Game</span>
+      </div>
+      <p class="game-desc game-desc-carve">
+        Slide blocks, match shapes, earn your moves back. A meditative puzzle built from wood and patience.
+      </p>
+      <span class="cta-btn cta-btn-carve">
+        Visit Site <span class="btn-arrow">→</span>
+      </span>
+
+      <span class="carve-ornament-bottom">◆ &nbsp; ◆ &nbsp; ◆</span>
     </a>
-</section>
 
-<div class="gold-divider"></div>
+    <!-- ══ CENTER DIVIDER ══ -->
+    <div class="center-divider">
+      <div class="center-line"></div>
+      <div class="center-dot"></div>
+      <span class="and-text">&amp;</span>
+      <div class="center-dot"></div>
+      <div class="center-line"></div>
+    </div>
 
-<!-- ═══════════════════════════════════ HOW TO PLAY ═══════════════════════════════════ -->
-<section class="how-section">
-    <div class="section-inner">
-        <span class="section-label reveal">How to Play</span>
-        <h2 class="section-heading reveal reveal-delay-1">Simple to Learn.<br>Endlessly Deep to Master.</h2>
-        <div class="gold-rule reveal reveal-delay-2"></div>
+    <!-- ══ PIPFALL ══ -->
+    <a class="game-card card-pipfall" href="https://cjasonmaier.github.io/pipfall" target="_blank" rel="noopener">
 
-        <div class="how-grid">
-            <div class="how-card reveal reveal-delay-1">
-                <img src="how1.png" alt="Slide blocks to match shapes" class="how-card-img">
-                <div class="how-card-body">
-                    <div class="how-num">01</div>
-                    <h3>Slide to Match</h3>
-                    <p>Drag blocks across the board to match any of three target shapes. Every swipe costs a move, so plan wisely.</p>
-                </div>
-            </div>
-            <div class="how-card reveal reveal-delay-2">
-                <img src="how2.png" alt="Carve shapes and earn moves back" class="how-card-img">
-                <div class="how-card-body">
-                    <div class="how-num">02</div>
-                    <h3>Carve &amp; Earn</h3>
-                    <p>Complete a shape and it's carved away — and you earn moves back. Chain multiple matches in one slide for a combo bonus.</p>
-                </div>
-            </div>
-            <div class="how-card reveal reveal-delay-3">
-                <img src="how3.png" alt="Rotate the board freely" class="how-card-img">
-                <div class="how-card-body">
-                    <div class="how-num">03</div>
-                    <h3>Rotate Freely</h3>
-                    <p>Rotate the entire board to find the perfect angle. Rotations are always free — use them when you need.</p>
-                </div>
-            </div>
-            <div class="how-card reveal reveal-delay-4">
-                <img src="how4.png" alt="Bonus blocks appear randomly" class="how-card-img">
-                <div class="how-card-body">
-                    <div class="how-num">04</div>
-                    <h3>The Bonus Block</h3>
-                    <p>Occasionally, a bonus block appears on the board. Carve a shape with it and your move meter fills completely.</p>
-                </div>
-            </div>
+      <div class="icon-wrap">
+        <div class="icon-pipfall">
+          <div class="pip-grid">
+            <div class="pg-cell"></div>
+            <div class="pg-cell c1"></div>
+            <div class="pg-cell c1"></div>
+            <div class="pg-cell"></div>
+
+            <div class="pg-cell c1"></div>
+            <div class="pg-cell c2"></div>
+            <div class="pg-cell burst"></div>
+            <div class="pg-cell c1"></div>
+
+            <div class="pg-cell c1"></div>
+            <div class="pg-cell burst"></div>
+            <div class="pg-cell c2"></div>
+            <div class="pg-cell c1"></div>
+
+            <div class="pg-cell"></div>
+            <div class="pg-cell c1"></div>
+            <div class="pg-cell c1"></div>
+            <div class="pg-cell"></div>
+          </div>
         </div>
-    </div>
-</section>
+      </div>
 
-<div class="gold-divider"></div>
+      <div class="game-name">
+        <span class="game-name-pipfall">pipfall</span>
+      </div>
+      <div class="game-sub">
+        <span class="game-sub-pipfall">Cascading Puzzle</span>
+      </div>
+      <p class="game-desc game-desc-pipfall">
+        Drop shapes, trigger cascades, master the elegant mathematics of sandpiles.
+      </p>
+      <span class="cta-btn cta-btn-pipfall">
+        Visit Site <span class="btn-arrow">→</span>
+      </span>
 
-<!-- ═══════════════════════════════════ SCREENSHOTS ═══════════════════════════════════ -->
-<section class="screens-section">
-    <div class="section-inner">
-        <span class="section-label reveal">In the Game</span>
-        <h2 class="section-heading reveal reveal-delay-1">Beautifully Crafted</h2>
-        <div class="gold-rule reveal reveal-delay-2"></div>
-    </div>
-    <div class="screens-track-wrap" id="screensTrack">
-        <div class="screens-track">
-            <div class="screen-item"><img src="screenshot1.png" alt="Carve gameplay screenshot 1" loading="lazy"></div>
-            <div class="screen-item"><img src="screenshot2.png" alt="Carve gameplay screenshot 2" loading="lazy"></div>
-            <div class="screen-item"><img src="screenshot7.png" alt="Carve gameplay screenshot 3" loading="lazy"></div>
-            <div class="screen-item"><img src="screenshot3.png" alt="Carve gameplay screenshot 4" loading="lazy"></div>
-            <div class="screen-item"><img src="screenshot4.png" alt="Carve gameplay screenshot 5" loading="lazy"></div>
-            <div class="screen-item"><img src="screenshot6.png" alt="Carve gameplay screenshot 6" loading="lazy"></div>
-        </div>
-    </div>
-</section>
-
-<div class="gold-divider"></div>
-
-<!-- ═══════════════════════════════════ FEATURES ═══════════════════════════════════ -->
-<section class="features-section">
-    <div class="section-inner">
-        <span class="section-label reveal">Features</span>
-        <h2 class="section-heading reveal reveal-delay-1">Everything You Need,<br>Nothing You Don't</h2>
-        <div class="gold-rule reveal reveal-delay-2"></div>
-
-        <div class="features-layout">
-            <div class="feature-card reveal reveal-delay-1">
-                <span class="feature-icon">🎯</span>
-                <h3>Daily Quests</h3>
-                <p>A new challenge awaits every day. Complete it to earn rewards and keep your daily streak alive.</p>
-            </div>
-            <div class="feature-card reveal reveal-delay-2">
-                <span class="feature-icon">📦</span>
-                <h3>Loot Boxes</h3>
-                <p>Maintain your streak and unlock treasure chests packed with bonus blocks, resets, and power-ups.</p>
-            </div>
-            <div class="feature-card reveal reveal-delay-3">
-                <span class="feature-icon">📈</span>
-                <h3>Natural Escalation</h3>
-                <p>Early play is relaxed and approachable. The longer a game goes, the more complex the shapes become — no artificial difficulty walls.</p>
-            </div>
-            <div class="feature-card reveal reveal-delay-4">
-                <span class="feature-icon">🏆</span>
-                <h3>High Scores &amp; Combos</h3>
-                <p>Chase your personal best. Earn badges for lifetime achievements, high scores, and combo milestones.</p>
-            </div>
-            <div class="feature-card wide reveal">
-                <span class="feature-icon">🚫</span>
-                <h3>Remove Ads — Forever</h3>
-                <p>Carve is free to play with optional ads. One single purchase removes all ads permanently. No subscriptions, no seasons, no paywalls. Just the game.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<div class="gold-divider"></div>
-
-<!-- ═══════════════════════════════════ RANKING ═══════════════════════════════════ -->
-<section class="ranking-section">
-    <div class="section-inner">
-        <span class="section-label reveal">Progression</span>
-        <h2 class="section-heading reveal reveal-delay-1">Grow Your Craft</h2>
-        <div class="gold-rule reveal reveal-delay-2"></div>
-        <div class="ranking-layout">
-            <div class="ranking-text">
-                <p class="ranking-desc reveal reveal-delay-3">Progress through a ranking system built entirely around wood — from humble beginnings to rare and exotic hardwoods that few players ever reach. Each rank reflects your true mastery of the board.</p>
-                <p class="ranking-desc reveal reveal-delay-4" style="margin-top: 16px; font-style: italic; color: var(--wood-light);">The ranks are yours to discover. Every new title earned is a milestone — and a glimpse of how far there still is to go.</p>
-            </div>
-
-            <div class="badge-progression reveal">
-                <div class="badge-row">
-                    <div class="badge-item">
-                        <img src="balsaicon.png" alt="Balsa rank badge" class="badge-img">
-                        <span class="badge-label">Balsa</span>
-                    </div>
-                    <div class="badge-arrow">→</div>
-                    <div class="badge-item">
-                        <div class="badge-locked-wrap">
-                            <img src="lockedpoplaricon.png" alt="Locked rank">
-                            <span class="badge-q">?</span>
-                        </div>
-                        <span class="badge-label locked-label">???</span>
-                    </div>
-                    <div class="badge-arrow">→</div>
-                    <div class="badge-dots">…</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<div class="gold-divider"></div>
-
-<!-- ═══════════════════════════════════ BOTTOM CTA ═══════════════════════════════════ -->
-<section class="cta-section">
-    <span class="section-label reveal" style="display:block; text-align:center;">Free to Download</span>
-    <h2 class="section-heading reveal reveal-delay-1" style="text-align:center;">Ready to Carve?</h2>
-    <p class="reveal reveal-delay-2">Just you, the board, and the next move.</p>
-    <a href="https://apps.apple.com/app/id6760225491" class="appstore-badge no-anim reveal reveal-delay-3" target="_blank" rel="noopener">
-        <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store">
     </a>
-</section>
 
-<!-- ═══════════════════════════════════ FOOTER ═══════════════════════════════════ -->
-<footer>
-    <div class="footer-links">
-        <a href="https://apps.apple.com/app/id6760225491" target="_blank" rel="noopener">App Store</a>
-        <a href="https://cjasonmaier.github.io/privacy_policy/" target="_blank">Privacy Policy</a>
-        <a href="https://cjasonmaier.github.io/privacy_policy/support.html" target="_blank">Support</a>
-    </div>
-    <div class="ornament">◆ &nbsp; ◆ &nbsp; ◆</div>
-    <p>&copy; 2026 C. Jason Maier &mdash; Carve: The Wooden Puzzle Game</p>
-</footer>
+  </main>
 
-<script>
-    // ─── Scroll reveal (progressive enhancement) ───
-    // Only hide elements if IntersectionObserver is supported
-    if ('IntersectionObserver' in window) {
-        document.body.classList.add('js-reveal-ready');
-        const revealEls = document.querySelectorAll('.reveal');
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(e => {
-                if (e.isIntersecting) {
-                    e.target.classList.add('visible');
-                    observer.unobserve(e.target);
-                }
-            });
-        }, { threshold: 0.08 });
-        revealEls.forEach(el => observer.observe(el));
-    }
+  <!-- ─── FOOTER ─── -->
+  <footer>
+    <p>&copy; 2026 C. Jason Maier &mdash; All Rights Reserved</p>
+  </footer>
 
-    // ─── Drag-to-scroll screenshots ───
-    const track = document.getElementById('screensTrack');
-    let isDown = false, startX, scrollLeft;
-    track.addEventListener('mousedown', e => {
-        isDown = true;
-        track.classList.add('grabbing');
-        startX = e.pageX - track.offsetLeft;
-        scrollLeft = track.scrollLeft;
-    });
-    track.addEventListener('mouseleave', () => { isDown = false; track.classList.remove('grabbing'); });
-    track.addEventListener('mouseup', () => { isDown = false; track.classList.remove('grabbing'); });
-    track.addEventListener('mousemove', e => {
-        if (!isDown) return;
-        e.preventDefault();
-        const x = e.pageX - track.offsetLeft;
-        track.scrollLeft = scrollLeft - (x - startX) * 1.5;
-    });
-</script>
 </body>
 </html>
