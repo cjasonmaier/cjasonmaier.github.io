@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>C. Jason Maier — iOS Games</title>
-  <meta name="description" content="Two iOS games by C. Jason Maier: Carve, the wooden puzzle game, and Pipfall, the cascading puzzle.">
+  <meta name="description" content="Three iOS games by C. Jason Maier: Carve, the wooden puzzle game, Pipfall, the cascading puzzle, and Neighbor Zero, the hex chain-reaction puzzle.">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Nunito:wght@700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Nunito:wght@700;800;900&family=Playfair+Display:wght@700;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
   <style>
     /* ─── RESET ─── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -207,6 +207,45 @@
       background: radial-gradient(ellipse at 50% 40%, rgba(51,153,219,0.08) 0%, transparent 65%);
     }
 
+    /* ── NEIGHBOR ZERO card ── */
+    .card-nz {
+      background:
+        radial-gradient(ellipse at 50% 30%, rgba(20, 40, 46, 0.55) 0%, transparent 65%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='97' viewBox='0 0 56 97'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.025' stroke-width='1'%3E%3Cpath d='M28 0 L56 16 L56 48 L28 64 L0 48 L0 16 Z'/%3E%3Cpath d='M28 64 L56 80 L56 112 L28 128 L0 112 L0 80 Z'/%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .card-nz::before {
+      background: radial-gradient(ellipse at 50% 40%, rgba(52,225,214,0.08) 0%, transparent 65%);
+    }
+
+    /* ─── APP ICON — Neighbor Zero hex cluster ─── */
+    .icon-nz {
+      width: 100px; height: 100px;
+      border-radius: 22px;
+      background: linear-gradient(145deg, #1b2236 0%, #10141f 70%, #070910 100%);
+      box-shadow:
+        0 0 0 1px rgba(52,225,214,0.3),
+        0 0 30px rgba(52,225,214,0.15),
+        0 16px 48px rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center;
+      animation: nzFloat 6s 2s ease-in-out infinite;
+    }
+
+    @keyframes nzFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .icon-nz .nz-zero {
+      animation: nzPulse 3s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    @keyframes nzPulse {
+      0%, 100% { opacity: 0.85; }
+      50% { opacity: 1; }
+    }
+
     /* ─── APP ICON PLACEHOLDER ─── */
     .icon-wrap {
       margin-bottom: 32px;
@@ -311,6 +350,16 @@
       text-shadow: 0 0 40px rgba(51,153,219,0.4);
     }
 
+    .game-name-nz {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(24px, 4.2vw, 36px);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: #34e1d6;
+      text-shadow: 0 0 40px rgba(52,225,214,0.4);
+      white-space: nowrap;
+    }
+
     .game-sub {
       text-align: center;
       margin-bottom: 20px;
@@ -335,6 +384,15 @@
       color: rgba(51,153,219,0.55);
     }
 
+    .game-sub-nz {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(52,225,214,0.55);
+    }
+
     .game-desc {
       text-align: center;
       max-width: 280px;
@@ -355,6 +413,14 @@
       font-size: 14px;
       font-weight: 600;
       color: rgba(140, 165, 200, 0.75);
+      letter-spacing: 0.01em;
+    }
+
+    .game-desc-nz {
+      font-family: 'Nunito', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(150, 195, 190, 0.75);
       letter-spacing: 0.01em;
     }
 
@@ -395,6 +461,17 @@
 
     .cta-btn-pipfall:hover {
       background: rgba(51,153,219,0.22);
+    }
+
+    .cta-btn-nz {
+      background: rgba(52,225,214,0.14);
+      color: #34e1d6;
+      border: 1px solid rgba(52,225,214,0.35);
+      box-shadow: 0 4px 20px rgba(52,225,214,0.1);
+    }
+
+    .cta-btn-nz:hover {
+      background: rgba(52,225,214,0.22);
     }
 
     /* Arrow */
@@ -444,8 +521,19 @@
     .card-pipfall .game-desc  { animation: fadeUp 0.6s 0.58s ease both; }
     .card-pipfall .cta-btn    { animation: fadeUp 0.6s 0.66s ease both; }
 
+    .card-nz .icon-wrap  { animation: fadeUp 0.6s 0.45s ease both; }
+    .card-nz .game-name  { animation: fadeUp 0.6s 0.55s ease both; }
+    .card-nz .game-sub   { animation: fadeUp 0.6s 0.60s ease both; }
+    .card-nz .game-desc  { animation: fadeUp 0.6s 0.68s ease both; }
+    .card-nz .cta-btn    { animation: fadeUp 0.6s 0.76s ease both; }
+
     /* ─── RESPONSIVE ─── */
-    @media (max-width: 680px) {
+    @media (max-width: 1100px) {
+      .game-card { padding: 60px 28px; }
+      .center-divider { padding: 0 12px; }
+    }
+
+    @media (max-width: 860px) {
       main {
         flex-direction: column;
         align-items: center;
@@ -478,8 +566,13 @@
       }
 
       .card-carve { border-bottom: 1px solid rgba(201,146,58,0.08); }
-      .card-pipfall { border-top: 1px solid rgba(51,153,219,0.08); }
+      .card-pipfall {
+        border-top: 1px solid rgba(51,153,219,0.08);
+        border-bottom: 1px solid rgba(51,153,219,0.08);
+      }
+      .card-nz { border-top: 1px solid rgba(52,225,214,0.08); }
     }
+
   </style>
 </head>
 <body>
@@ -487,7 +580,7 @@
   <!-- ─── HEADER ─── -->
   <header>
     <span class="byline">C. Jason Maier &mdash; iOS Games</span>
-    <h1 class="page-title">Two Games. Two Worlds.</h1>
+    <h1 class="page-title">Three Games. Three Worlds.</h1>
     <div class="divider-line"></div>
   </header>
 
@@ -580,6 +673,76 @@
         Drop shapes, trigger cascades, master the elegant mathematics of sandpiles.
       </p>
       <span class="cta-btn cta-btn-pipfall">
+        Visit Site <span class="btn-arrow">→</span>
+      </span>
+
+    </a>
+
+    <!-- ══ CENTER DIVIDER ══ -->
+    <div class="center-divider">
+      <div class="center-line"></div>
+      <div class="center-dot"></div>
+      <span class="and-text">&amp;</span>
+      <div class="center-dot"></div>
+      <div class="center-line"></div>
+    </div>
+
+    <!-- ══ NEIGHBOR ZERO ══ -->
+    <a class="game-card card-nz" href="https://cjasonmaier.github.io/neighborzero/" target="_blank" rel="noopener">
+
+      <div class="icon-wrap">
+        <div class="icon-nz">
+          <!-- Hex cluster: glowing zero ringed by numbered tiles -->
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <path id="nzhex" d="M 0,-8.6 L 7.45,-4.3 L 7.45,4.3 L 0,8.6 L -7.45,4.3 L -7.45,-4.3 Z"/>
+            </defs>
+            <!-- ring of six target-hue tiles -->
+            <g font-family="'Space Grotesk', sans-serif" font-size="7" font-weight="700" text-anchor="middle">
+              <g transform="translate(32,17)">
+                <use href="#nzhex" fill="#FFD60A" fill-opacity="0.22" stroke="#FFD60A" stroke-width="1.2"/>
+                <text y="2.6" fill="#FFD60A">1</text>
+              </g>
+              <g transform="translate(45,24.5)">
+                <use href="#nzhex" fill="#34D85C" fill-opacity="0.22" stroke="#34D85C" stroke-width="1.2"/>
+                <text y="2.6" fill="#34D85C">2</text>
+              </g>
+              <g transform="translate(45,39.5)">
+                <use href="#nzhex" fill="#FF9F0A" fill-opacity="0.22" stroke="#FF9F0A" stroke-width="1.2"/>
+                <text y="2.6" fill="#FF9F0A">3</text>
+              </g>
+              <g transform="translate(32,47)">
+                <use href="#nzhex" fill="#C77DFF" fill-opacity="0.22" stroke="#C77DFF" stroke-width="1.2"/>
+                <text y="2.6" fill="#C77DFF">4</text>
+              </g>
+              <g transform="translate(19,39.5)">
+                <use href="#nzhex" fill="#FF5C77" fill-opacity="0.22" stroke="#FF5C77" stroke-width="1.2"/>
+                <text y="2.6" fill="#FF5C77">5</text>
+              </g>
+              <g transform="translate(19,24.5)">
+                <use href="#nzhex" fill="#4AA8FF" fill-opacity="0.22" stroke="#4AA8FF" stroke-width="1.2"/>
+                <text y="2.6" fill="#4AA8FF">6</text>
+              </g>
+              <!-- glowing center zero -->
+              <g class="nz-zero" transform="translate(32,32)">
+                <use href="#nzhex" fill="#34E1D6" fill-opacity="0.3" stroke="#34E1D6" stroke-width="1.6" style="filter: drop-shadow(0 0 4px rgba(52,225,214,0.8));"/>
+                <text y="2.8" font-size="8" fill="#34E1D6">0</text>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="game-name">
+        <span class="game-name-nz">Neighbor Zero</span>
+      </div>
+      <div class="game-sub">
+        <span class="game-sub-nz">Chain Reactions</span>
+      </div>
+      <p class="game-desc game-desc-nz">
+        Swap hex tiles, match their targets, and watch the whole board bloom in cascading chain reactions.
+      </p>
+      <span class="cta-btn cta-btn-nz">
         Visit Site <span class="btn-arrow">→</span>
       </span>
 
